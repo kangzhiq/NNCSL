@@ -7,14 +7,17 @@ The method is composed of a base learner **iPAWS** and a distillation loss **NND
 is our base continual semi-supervised learner, which is developed from PAWS and adapted to a novel continual semi-supervised scenario. An
 illustration of the architecture is as follows:
 
-![iPAWS](/Imgs/method.jpg "iPAWS")
-
+<p align="center">
+    <img width="600" src="https://github.com/kangzhiq/NNCSL/blob/main/Imgs/method.jpg" alt="iPAWS">
+</p>
 
 ### NND
 is our propsed distillation strategy based on the nearest-neighbor classifier that transfers both class-level and feature-level knowledge. An
 illustration of the architecture is as follows:
 
-![NND](/Imgs/nnd.jpg "NND")
+<p align="center">
+    <img width="600" src="https://github.com/kangzhiq/NNCSL/blob/main/Imgs/nnd.jpg" alt="NND">
+</p>
 
 
 ## How to run NNCSL?
