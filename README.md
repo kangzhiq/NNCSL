@@ -55,31 +55,31 @@ Once the dataset is ready, the experiment can be launched by the following comma
 #### CIFAR-10
 for CIFAR-10, 0.8% of labeled data, buffer size 500, using our NNCSL
 
-`python main.py --sel nncsl_train  --fname configs/nncsl/cifar10/cifar10_0.8%_buffer500_nncsl.yaml`,
+    python main.py --sel nncsl_train  --fname configs/nncsl/cifar10/cifar10_0.8%_buffer500_nncsl.yaml
 
 for CIFAR-10, 0.8% of labeled data, buffer size 500, using iPAWS
 
-`python main.py --sel nncsl_train  --fname configs/nncsl/cifar10/cifar10_0.8%_buffer500_ipaws.yaml`,
+    python main.py --sel nncsl_train  --fname configs/nncsl/cifar10/cifar10_0.8%_buffer500_ipaws.yaml
 
 for CIFAR-10, 0.8% of labeled data, buffer size 500, using PAWS
 
-`python main.py --sel nncsl_train  --fname configs/nncsl/cifar10/cifar10_0.8%_buffer500_paws.yaml`,
+    python main.py --sel nncsl_train  --fname configs/nncsl/cifar10/cifar10_0.8%_buffer500_paws.yaml
 
 #### CIFAR-100
 for CIFAR-100, 0.8% of labeled data, buffer size 500, using our NNCSL
 
-`python main.py --sel nncsl_train  --fname configs/nncsl/cifar100/cifar100_0.8%_buffer500_nncsl.yaml`,
+    python main.py --sel nncsl_train  --fname configs/nncsl/cifar100/cifar100_0.8%_buffer500_nncsl.yaml
 
 #### ImageNet-100
 for ImageNet-100, 1% of labeled data, buffer size 500, using our NNCSL
 
-`python main.py --sel nncsl_train  --fname configs/nncsl/imagenet100/imgnt100_1%_buffer500_nncsl.yaml`,
+    python main.py --sel nncsl_train  --fname configs/nncsl/imagenet100/imgnt100_1%_buffer500_nncsl.yaml
 
 #### Change buffer size
 one can easily change the buffer size by modifying the parameters in the config file, we provide one example as:
 for CIFAR-100, 0.8% of labeled data, buffer size 5120, using our NNCSL
 
-`python main.py --sel nncsl_train  --fname configs/nncsl/cifar100/cifar100_0.8%_buffer5120_nncsl.yaml`.
+    python main.py --sel nncsl_train  --fname configs/nncsl/cifar100/cifar100_0.8%_buffer5120_nncsl.yaml
 
 Please check the config files in ./configs/nncsl/ for more different settings.
 
