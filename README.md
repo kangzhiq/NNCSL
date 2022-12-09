@@ -1,11 +1,20 @@
 # A soft nearest-neighbor framework for continual semi-supervised learning
-Official PyTorch implementation of NNCSL（**N**earest-**N**eighbor for **C**ontinual **S**emi-supervised **L**earning), which is introduced in *A soft nearest-neighbor framework for continual semi-supervised learning*. The code is developped based on the source code of [Semi-Supervised Learning of Visual Features by Non-Parametrically Predicting View Assignments with Support Samples](https://github.com/facebookresearch/suncet).
+Official PyTorch implementation of NNCSL（**N**earest-**N**eighbor for **C**ontinual **S**emi-supervised **L**earning), which is introduced in *A soft nearest-neighbor framework for continual semi-supervised learning*. The code is developped based on the source code of PAWS: [Semi-Supervised Learning of Visual Features by Non-Parametrically Predicting View Assignments with Support Samples](https://github.com/facebookresearch/suncet).
 
 The method is composed of a base learner **iPAWS** and a distillation loss **NND**.
 
-![iPAWS](/Imgs/method.pdf "iPAWS")
+### iPAWS
+is our base continual semi-supervised learner, which is developped from PAWS and adapted to a novel continual semi-supervised scenario. An
+illustration of the architecture is as follows:
 
-![NND](/Imgs/nnd.pdf "NND")
+![iPAWS](/Imgs/method.jpg "iPAWS")
+
+
+### NND
+is our propsed distillation strategy that transfers both class-level and feature-level knowledge. An
+illustration of the architecture is as follows:
+
+![NND](/Imgs/nnd.jpg "NND")
 
 
 ## How to run NNCSL?
