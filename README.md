@@ -1,14 +1,26 @@
-# A soft nearest-neighbor framework for continual semi-supervised learning
-Official PyTorch implementation of NNCSL（**N**earest-**N**eighbor for **C**ontinual **S**emi-supervised **L**earning), which is introduced in *A soft nearest-neighbor framework for continual semi-supervised learning*. The code is developed based on the source code of [PAWS](https://github.com/facebookresearch/suncet).
+<div align="center">
+  
+  <div>
+  <h1>A soft nearest-neighbor framework for continual semi-supervised learning</h1>
+  </div>
 
-The method is composed of a base learner **iPAWS** and a distillation loss **NND**.
+  <div>
+      Zhiqi Kang*&emsp; Enrico Fini*&emsp; Moin Nabi&emsp; Elisa Ricci&emsp; Karteek Alahari
+  </div>
+  <br/>
 
-### iPAWS
+</div>
+
+Official PyTorch implementation of ICCV 2023 paper "[A soft nearest-neighbor framework for continual semi-supervised learning](https://arxiv.org/abs/2212.05102)" (**Oral presentation**). 
+
+Our proposed NNCSL（**N**earest-**N**eighbor for **C**ontinual **S**emi-supervised **L**earning) is composed of a continual semi-supervised learner **CSL** and a distillation loss **NND**.
+
+### CSL
 is our base continual semi-supervised learner, which is developed from PAWS and adapted to a novel continual semi-supervised scenario. An
 illustration of the architecture is as follows:
 
 <p align="center">
-    <img width="600" src="https://github.com/kangzhiq/NNCSL/blob/main/Imgs/method.jpg" alt="iPAWS">
+    <img width="600" src="https://github.com/kangzhiq/NNCSL/blob/main/Imgs/method.jpg" alt="CSL">
 </p>
 
 ### NND
@@ -86,5 +98,16 @@ for CIFAR-100, 0.8% of labeled data, buffer size 5120, using our NNCSL
 
 Please check the config files in ./configs/nncsl/ for more different settings.
 
+## Acknolegment
+This implementation is developed based on the source code of [PAWS](https://github.com/facebookresearch/suncet).
+
 ## CITATION
-TODO add ref
+If you find our codes or paper useful, please consider giving us a star or cite with:
+```
+@article{kang2022soft,
+  title={A soft nearest-neighbor framework for continual semi-supervised learning},
+  author={Kang, Zhiqi and Fini, Enrico and Nabi, Moin and Ricci, Elisa and Alahari, Karteek},
+  journal={arXiv preprint arXiv:2212.05102},
+  year={2022}
+}
+```
