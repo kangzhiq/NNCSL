@@ -7,11 +7,17 @@
   <div>
       Zhiqi Kang*&emsp; Enrico Fini*&emsp; Moin Nabi&emsp; Elisa Ricci&emsp; Karteek Alahari
   </div>
+
+  <div>
+      <h4>
+          Oral presentation
+      </h4>
+  </div>
   <br/>
 
 </div>
 
-Official PyTorch implementation of ICCV 2023 paper "[A soft nearest-neighbor framework for continual semi-supervised learning](https://arxiv.org/abs/2212.05102)" (**Oral presentation**). 
+Official PyTorch implementation of our ICCV 2023 paper "[A soft nearest-neighbor framework for continual semi-supervised learning](https://arxiv.org/abs/2212.05102)". 
 
 Our proposed NNCSL（**N**earest-**N**eighbor for **C**ontinual **S**emi-supervised **L**earning) is composed of a continual semi-supervised learner **CSL** and a distillation loss **NND**.
 
@@ -104,10 +110,12 @@ This implementation is developed based on the source code of [PAWS](https://gith
 ## CITATION
 If you find our codes or paper useful, please consider giving us a star or cite with:
 ```
-@article{kang2022soft,
-  title={A soft nearest-neighbor framework for continual semi-supervised learning},
-  author={Kang, Zhiqi and Fini, Enrico and Nabi, Moin and Ricci, Elisa and Alahari, Karteek},
-  journal={arXiv preprint arXiv:2212.05102},
-  year={2022}
+@InProceedings{Kang_2023_ICCV,
+    author    = {Kang, Zhiqi and Fini, Enrico and Nabi, Moin and Ricci, Elisa and Alahari, Karteek},
+    title     = {A Soft Nearest-Neighbor Framework for Continual Semi-Supervised Learning},
+    booktitle = {Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},
+    month     = {October},
+    year      = {2023},
+    pages     = {11868-11877}
 }
 ```
