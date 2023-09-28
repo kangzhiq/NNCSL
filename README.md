@@ -26,7 +26,7 @@ is our base continual semi-supervised learner, which is developed from PAWS and 
 illustration of the architecture is as follows:
 
 <p align="center">
-    <img width="600" src="https://github.com/kangzhiq/NNCSL/blob/main/Imgs/method.jpg" alt="CSL">
+    <img width="600" src="https://github.com/kangzhiq/NNCSL/blob/main/Imgs/method.png" alt="CSL">
 </p>
 
 ### NND
@@ -34,7 +34,7 @@ is our propsed distillation strategy based on the nearest-neighbor classifier th
 illustration of the architecture is as follows:
 
 <p align="center">
-    <img width="600" src="https://github.com/kangzhiq/NNCSL/blob/main/Imgs/nnd.jpg" alt="NND">
+    <img width="600" src="https://github.com/kangzhiq/NNCSL/blob/main/Imgs/NND.png" alt="NND">
 </p>
 
 
