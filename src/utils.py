@@ -9,7 +9,7 @@ import os
 import math
 import torch
 import torch.distributed as dist
-
+import numpy as np 
 from logging import getLogger
 
 logger = getLogger()

@@ -71,7 +71,8 @@ np.random.seed(_GLOBAL_SEED)
 torch.manual_seed(_GLOBAL_SEED)
 torch.backends.cudnn.benchmark = True
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+# logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+logging.basicConfig(filename='output/example.log', level=logging.INFO)
 logger = logging.getLogger()
 
 
