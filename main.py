@@ -27,7 +27,7 @@ parser.add_argument(
     '--sel', type=str,
     help='which script to run',
     choices=[
-        'nncsl_train',
+        'nncsl_train'
     ])
 
 

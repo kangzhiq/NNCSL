@@ -18,8 +18,8 @@ data:
   us_multicrop: 2
   normalize: true
   root_path: datasets/
-  subset_path: ./subsets/cifar100/spc.125_percent0.25_split0.txt
-  subset_path_cls: ./subsets/cifar100/spc.125_percent0.25_split0_cls.txt
+  subset_path: ./subsets/cifar100/25%_seed0.txt
+  subset_path_cls: ./subsets/cifar100/25%_seed0_cls.txt
   unique_classes_per_rank: false
   unlabeled_frac: 0.99
 logging:

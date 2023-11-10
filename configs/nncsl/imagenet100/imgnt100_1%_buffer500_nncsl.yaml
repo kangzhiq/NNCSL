@@ -17,8 +17,8 @@ data:
   us_multicrop: 2
   normalize: true
   root_path: datasets/
-  subset_path: ./subsets/imagenet100/spc.13_percent0.01_split0.txt
-  subset_path_cls: ./subsets/imagenet100/spc.13_percent0.01_split0_cls.txt
+  subset_path: ./subsets/imagenet100/1%_seed0.txt
+  subset_path_cls: ./subsets/imagenet100/1%_seed0_cls.txt
   unique_classes_per_rank: true
   unlabeled_frac: 0.9
 logging:

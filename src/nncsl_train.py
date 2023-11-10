@@ -31,6 +31,7 @@ from src.utils import (
 )
 
 import copy
+import random
 
 import torch
 import torch.nn.functional as F
@@ -66,10 +67,19 @@ log_freq = 10
 checkpoint_freq = 50
 # --
 
-_GLOBAL_SEED = 0
+_GLOBAL_SEED = 42
 np.random.seed(_GLOBAL_SEED)
 torch.manual_seed(_GLOBAL_SEED)
-torch.backends.cudnn.benchmark = True
+random.seed(_GLOBAL_SEED)
+
+# # Deterministic mode
+#####################
+# # Uncomment the code below for fully deterministic runs
+# # If activated and CUFA >= 10.2, please run the script with
+# #              CUBLAS_WORKSPACE_CONFIG=:16:8 python --sel nncsl_train --fname xxxxxx
+# #
+# torch.backends.cudnn.benchmark = False
+# torch.set_deterministic(True)
 
 # logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logging.basicConfig(filename='output/example.log', level=logging.INFO)
@@ -278,7 +288,11 @@ def main(args):
     classes = list(range(num_classes))
     classes_per_task = num_classes // num_tasks
     tasks = [classes[i:i + classes_per_task] for i in range(0, len(classes), classes_per_task)]
-    
+
+    # if not empty, the buffer should contain data for at least one batch
+    # otherwise, reduce the batch size for labeled data
+    if buffer_size > 0:
+        assert buffer_size >= s_batch_size * len(sum(tasks[:num_tasks-1], []))
 
     # -- continual training loop
     pre_encoder = None
@@ -327,14 +341,18 @@ def main(args):
         else:
             raise ValueError('unknown setting!')
         # -- assume support images are sampled with ClassStratifiedSampler
+        num_cur_classes = len(tasks[task_idx])
         pre_classes = sum(tasks[:task_idx], [])
         num_pre_classes = len(pre_classes)
         seen_classes = sum(tasks[:task_idx + 1], [])
         num_seen_classes = len(seen_classes)
-        if mask:
-            num_classes_cl = len(tasks[task_idx])
+        if buffer_size == 0:
+            num_classes_cl = num_cur_classes
         else:
-            num_classes_cl = num_seen_classes
+            if mask:
+                num_classes_cl = num_cur_classes
+            else:
+                num_classes_cl = num_seen_classes
 
         labels_matrix = make_labels_matrix(
             num_classes=num_classes_cl,
@@ -346,24 +364,30 @@ def main(args):
             task_idx=task_idx)
         
         if pre_encoder is not None:
-            pre_labels_matrix = make_labels_matrix(
-                num_classes=num_pre_classes,
-                s_batch_size=s_batch_size,
-                world_size=world_size,
-                device=device,
-                unique_classes=unique_classes,
-                smoothing=label_smoothing,
-                task_idx=task_idx)
-            all_labels_matrix = make_labels_matrix(
-                num_classes=num_seen_classes,
-                s_batch_size=s_batch_size,
-                world_size=world_size,
-                device=device,
-                unique_classes=unique_classes,
-                smoothing=label_smoothing,
-                task_idx=task_idx)
+            if buffer_size == 0:
+                pre_labels_matrix = make_labels_matrix(
+                    num_classes=num_cur_classes,
+                    s_batch_size=s_batch_size,
+                    world_size=world_size,
+                    device=device,
+                    unique_classes=unique_classes,
+                    smoothing=label_smoothing,
+                    task_idx=task_idx)
+            else:
+                pre_labels_matrix = make_labels_matrix(
+                    num_classes=num_pre_classes,
+                    s_batch_size=s_batch_size,
+                    world_size=world_size,
+                    device=device,
+                    unique_classes=unique_classes,
+                    smoothing=label_smoothing,
+                    task_idx=task_idx)
         # print('-----------------label matrix; {}-------------'.format(labels_matrix))
         # -- init data-loaders/samplers
+        if buffer_size == 0:
+            classes_per_batch = num_cur_classes
+        else:
+            classes_per_batch = num_seen_classes
         (unsupervised_loader,
         unsupervised_sampler,
         supervised_loader,
@@ -375,7 +399,7 @@ def main(args):
             u_batch_size=u_batch_size,
             s_batch_size=s_batch_size,
             unique_classes=unique_classes,
-            classes_per_batch=num_seen_classes,
+            classes_per_batch=classes_per_batch,
             multicrop_transform=multicrop_transform,
             world_size=world_size,
             rank=rank,
@@ -539,8 +563,10 @@ def main(args):
                             # Step 2. determine anchor views/supports and their
                             #         corresponding target views/supports
                             # --
-                            num_support_mix = (supervised_views) * s_batch_size * num_seen_classes
-
+                            if buffer_size == 0:
+                                num_support_mix = (supervised_views) * s_batch_size * num_cur_classes
+                            else:
+                                num_support_mix = (supervised_views) * s_batch_size * num_seen_classes
                             num_u_data_mix =  u_batch_size 
                             # --
                             if mask:
@@ -584,7 +610,10 @@ def main(args):
                                 sigmoid = torch.nn.Sigmoid() 
                                 softmax = torch.nn.Softmax(dim=1)  
                                 cos_sim = torch.nn.CosineSimilarity(dim=1, eps=1e-6)
-                                pre_mask = [label in pre_classes for label in slabels]                       
+                                if buffer_size == 0:
+                                    pre_mask = [True for label in slabels]
+                                else:
+                                    pre_mask = [label in pre_classes for label in slabels]
                                 
                                 # Distillation on features
                                 dist_loss = mse_loss(h_proj, pre_h)
@@ -623,17 +652,6 @@ def main(args):
 
                     sacc1 = 100. * AllReduce.apply(top1_correct).item() / slogits.size(0)
                     sacc5 = 100. * AllReduce.apply(top5_correct).item() / slogits.size(0)
-                    # Adding per task training accuracy for supervised set:
-                    per_cls_train_l = {}
-                    count = 0
-                    for tt_id in range(task_idx+1):
-                        cls_lst = tasks[tt_id]
-                        idx_lst = torch.tensor([label in cls_lst for label in slabels])
-                        top1_task = slogits[idx_lst].max(dim=-1).indices.eq(slabels[idx_lst]).sum()
-                        sacc1_task = 100. * AllReduce.apply(top1_task).item() / idx_lst.sum()
-                        count += idx_lst.sum()
-                        per_cls_train_l[tt_id] = sacc1_task
-                    assert count == slabels.size(0)
 
                     # calculate training accuracy on the unsupervised set
                     ulogits = l[num_support_mix:num_support_mix + 2 * num_u_data_mix]
@@ -658,11 +676,10 @@ def main(args):
                         sacc5,
                         uacc1,
                         uacc5,
-                        lr_stats,
-                        per_cls_train_l)
+                        lr_stats)
 
                 (loss, ploss, rloss, online_eval_loss, dist_loss, dist_logit_loss,
-                sacc1, sacc5, uacc1, uacc5, lr_stats, per_cls_train_l), etime = gpu_timer(train_step)
+                sacc1, sacc5, uacc1, uacc5, lr_stats), etime = gpu_timer(train_step)
                 loss_meter.update(loss)
                 ploss_meter.update(ploss)
                 rloss_meter.update(rloss)
@@ -674,9 +691,6 @@ def main(args):
                 uacc1_meter.update(uacc1)
                 uacc5_meter.update(uacc5)
                 time_meter.update(etime)
-                # Update per task meter for labeled data
-                for tt_idx in range(task_idx+1):
-                    meter_set_l[tt_idx].update(per_cls_train_l[tt_idx])
 
                 if (itr % log_freq == 0) or np.isnan(loss) or np.isinf(loss):
                     csv_logger.log(epoch + 1, itr,

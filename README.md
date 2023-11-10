@@ -78,9 +78,9 @@ for CIFAR-10, 0.8% of labeled data, buffer size 500, using our NNCSL
 
     python main.py --sel nncsl_train  --fname configs/nncsl/cifar10/cifar10_0.8%_buffer500_nncsl.yaml
 
-for CIFAR-10, 0.8% of labeled data, buffer size 500, using iPAWS
+for CIFAR-10, 0.8% of labeled data, buffer size 500, using CSL
 
-    python main.py --sel nncsl_train  --fname configs/nncsl/cifar10/cifar10_0.8%_buffer500_ipaws.yaml
+    python main.py --sel nncsl_train  --fname configs/nncsl/cifar10/cifar10_0.8%_buffer500_csl.yaml
 
 for CIFAR-10, 0.8% of labeled data, buffer size 500, using PAWS
 
@@ -97,12 +97,26 @@ for ImageNet-100, 1% of labeled data, buffer size 500, using our NNCSL
     python main.py --sel nncsl_train  --fname configs/nncsl/imagenet100/imgnt100_1%_buffer500_nncsl.yaml
 
 #### Change buffer size
-one can easily change the buffer size by modifying the parameters in the config file, we provide one example as:
+one can easily change the buffer size by modifying the parameter `buffer_size` in the config file, we provide one example as:
 for CIFAR-100, 0.8% of labeled data, buffer size 5120, using our NNCSL
 
     python main.py --sel nncsl_train  --fname configs/nncsl/cifar100/cifar100_0.8%_buffer5120_nncsl.yaml
 
 Please check the config files in ./configs/nncsl/ for more different settings.
+
+#### Change labeled data proportion
+one can try with different ratio of labeled data other than the given settings (0.8%, 1%, 5% and 25%). There are two steps:
+1. Generate the index files with `make_subset.py` in \subsets.
+Below is an example for generate index files for CIFAR-10 with 50 percents of labeled data.
+
+        python make_subset.py --dataset cifar10 --seed 0 --percent 50
+
+2. Source the index files in the corresponding config files
+Change `subset_path` and `subset_path_cls` to the corresponding path. Please note that these two parameters should be consistent.
+
+### Work in progress
+We will keep updating our repository to make it easier to use and to share our recent progress on this project.
+1. Using standard reservoir replay buffer
 
 ## Acknolegment
 This implementation is developed based on the source code of [PAWS](https://github.com/facebookresearch/suncet).

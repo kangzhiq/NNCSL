@@ -28,6 +28,13 @@ from PIL import ImageOps
 _GLOBAL_SEED = 0
 logger = getLogger()
 
+def seed_worker(worker_id):
+    worker_seed = torch.initial_seed() % 2**32
+    np.random.seed(worker_seed)
+    random.seed(worker_seed)
+
+g = torch.Generator()
+g.manual_seed(0)
 
 def init_data(
     dataset_name,
@@ -90,7 +97,8 @@ def init_data(
             copy_data=copy_data,
             tasks=tasks,
             task_idx=task_idx,
-            visible_class_ul=visible_class_ul)
+            visible_class_ul=visible_class_ul,
+            buffer_lst=buffer_lst)
 
     elif dataset_name == 'imagenet_fine_tune':
         batch_size = s_batch_size
@@ -225,7 +233,8 @@ def _init_cifar10_ft_data(
         supervised_views=supervised_views,
         train=training,
         supervised=True,
-        tasks=sum(tasks[:task_idx + 1], []))
+        tasks=sum(tasks[:task_idx + 1], []),
+        task_idx=task_idx)
 
     if not stratify:
         dist_sampler = torch.utils.data.distributed.DistributedSampler(
@@ -238,7 +247,9 @@ def _init_cifar10_ft_data(
             batch_size=batch_size,
             drop_last=drop_last,
             pin_memory=True,
-            num_workers=8)
+            num_workers=8,
+            worker_init_fn=seed_worker,
+            generator=g)
     else:
         dist_sampler = ClassStratifiedSampler(
             data_source=dataset,
@@ -252,7 +263,9 @@ def _init_cifar10_ft_data(
             dataset,
             batch_sampler=dist_sampler,
             pin_memory=True,
-            num_workers=8)
+            num_workers=8,
+            worker_init_fn=seed_worker,
+            generator=g)
 
     return (data_loader, dist_sampler)
 
@@ -313,7 +326,9 @@ def _init_cifar10_data(
         batch_size=u_batch_size,
         drop_last=True,
         pin_memory=True,
-        num_workers=8)
+        num_workers=8,
+        worker_init_fn=seed_worker,
+        generator=g)
 
     supervised_sampler, supervised_loader = None, None
     if classes_per_batch > 0 and s_batch_size > 0:
@@ -330,8 +345,7 @@ def _init_cifar10_data(
                 supervised=True,
                 tasks=sum(tasks[:task_idx + 1], []),
                 task_idx=task_idx,
-                us=us,
-                buffer_lst=buffer_lst)
+                us=us)
         else:
             supervised_set = TransCIFAR10(
                 root=root_path,
@@ -356,7 +370,9 @@ def _init_cifar10_data(
         supervised_loader = torch.utils.data.DataLoader(
             supervised_set,
             batch_sampler=supervised_sampler,
-            num_workers=8)
+            num_workers=8,
+            worker_init_fn=seed_worker,
+            generator=g)
         if len(supervised_loader) > 0:
             tmp = ceil(len(unsupervised_loader) / len(supervised_loader))
             supervised_sampler.set_inner_epochs(tmp)
@@ -395,6 +411,7 @@ def _init_cifar100_ft_data(
         supervised_views=supervised_views,
         train=training,
         supervised=True,
+        task_idx=task_idx,
         tasks=sum(tasks[:task_idx + 1], []))
 
     if not stratify:
@@ -408,7 +425,9 @@ def _init_cifar100_ft_data(
             batch_size=batch_size,
             drop_last=drop_last,
             pin_memory=True,
-            num_workers=8)
+            num_workers=8,
+            worker_init_fn=seed_worker,
+            generator=g)
     else:
         dist_sampler = ClassStratifiedSampler(
             data_source=dataset,
@@ -422,7 +441,9 @@ def _init_cifar100_ft_data(
             dataset,
             batch_sampler=dist_sampler,
             pin_memory=True,
-            num_workers=8)
+            num_workers=8,
+            worker_init_fn=seed_worker,
+            generator=g)
 
     return (data_loader, dist_sampler)
 
@@ -474,7 +495,9 @@ def _init_cifar100_data(
         batch_size=u_batch_size,
         drop_last=True,
         pin_memory=True,
-        num_workers=8)
+        num_workers=8,
+        worker_init_fn=seed_worker,
+        generator=g)
 
     supervised_sampler, supervised_loader = None, None
     if classes_per_batch > 0 and s_batch_size > 0:
@@ -489,7 +512,7 @@ def _init_cifar100_data(
             supervised=True,
             tasks=sum(tasks[:task_idx + 1], []),
             task_idx=task_idx,
-            buffer_lst=buffer_lst)
+            buffer_lst=buffer_lst,)
         supervised_sampler = ClassStratifiedSampler(
             data_source=supervised_set,
             world_size=world_size,
@@ -500,7 +523,9 @@ def _init_cifar100_data(
         supervised_loader = torch.utils.data.DataLoader(
             supervised_set,
             batch_sampler=supervised_sampler,
-            num_workers=8)
+            num_workers=8,
+            worker_init_fn=seed_worker,
+            generator=g)
         if len(supervised_loader) > 0:
             tmp = ceil(len(unsupervised_loader) / len(supervised_loader))
             supervised_sampler.set_inner_epochs(tmp)
@@ -557,7 +582,9 @@ def _init_imgnt_ft_data(
             batch_size=batch_size,
             drop_last=drop_last,
             pin_memory=True,
-            num_workers=8)
+            num_workers=8,
+            worker_init_fn=seed_worker,
+            generator=g)
     else:
         dist_sampler = ClassStratifiedSampler(
             data_source=dataset,
@@ -571,7 +598,9 @@ def _init_imgnt_ft_data(
             dataset,
             batch_sampler=dist_sampler,
             pin_memory=True,
-            num_workers=8)
+            num_workers=8,
+            worker_init_fn=seed_worker,
+            generator=g)
 
     return (data_loader, dist_sampler)
 
@@ -595,7 +624,8 @@ def _init_imgnt_data(
     tar_file='imagenet_full_size-061417.tar',
     tasks=None,
     task_idx=0,
-    visible_class_ul=None
+    visible_class_ul=None,
+    buffer_lst=None
 ):
     imagenet = ImageNet(
         root=root_path,
@@ -631,7 +661,9 @@ def _init_imgnt_data(
         batch_size=u_batch_size,
         drop_last=True,
         pin_memory=True,
-        num_workers=8)
+        num_workers=8,
+        worker_init_fn=seed_worker,
+        generator=g)
     logger.info('ImageNet unsupervised data loader created')
 
     supervised_sampler, supervised_loader = None, None
@@ -643,7 +675,8 @@ def _init_imgnt_data(
             supervised_views=supervised_views,
             init_transform=init_transform,
             seed=_GLOBAL_SEED,
-            tasks=sum(tasks[:task_idx + 1], []))
+            tasks=sum(tasks[:task_idx + 1], []),
+            buffer_lst=buffer_lst)
         supervised_sampler = ClassStratifiedSampler(
             data_source=supervised_set,
             world_size=world_size,
@@ -656,7 +689,9 @@ def _init_imgnt_data(
             supervised_set,
             batch_sampler=supervised_sampler,
             pin_memory=True,
-            num_workers=8)
+            num_workers=8,
+            worker_init_fn=seed_worker,
+            generator=g)
         if len(supervised_loader) > 0:
             tmp = ceil(len(unsupervised_loader) / len(supervised_loader))
             supervised_sampler.set_inner_epochs(tmp)
@@ -788,9 +823,8 @@ def _make_cifar_transforms(
 
     def init_transform(targets, samples, keep_file=keep_file, training=training, tasks=None, task_idx=None, buffer_lst=None):
         """ Transforms applied to dataset at the start of training """
-        if buffer_lst:
-            cls_per_task = int(len(tasks) / (task_idx+1))
-            cur_cls = tasks[-cls_per_task:]
+        cls_per_task = int(len(tasks) / (task_idx+1))
+        cur_cls = tasks[-cls_per_task:]
         new_targets, new_samples = [], []
         if training and (keep_file is not None):
             assert os.path.exists(keep_file), 'keep file does not exist'
@@ -798,12 +832,13 @@ def _make_cifar_transforms(
             with open(keep_file, 'r') as rfile:
                 for line in rfile:
                     indx = int(line.split('\n')[0])
-                    if tasks is None or targets[indx] in tasks:
-                        if buffer_lst:
-                            if targets[indx] not in cur_cls and indx not in buffer_lst:
-                                continue
+                    if targets[indx] in cur_cls:
                         new_targets.append(targets[indx])
                         new_samples.append(samples[indx])
+                    elif buffer_lst is not None and indx in buffer_lst:
+                        new_targets.append(targets[indx])
+                        new_samples.append(samples[indx])
+
         else:
             if tasks is not None:
                 for s, t in zip(samples, targets):
@@ -885,19 +920,18 @@ def _make_imgnt_transforms(
                        task_idx=None,
                        buffer_lst=None):
         """ Transforms applied to dataset at the start of training """
-        if buffer_lst:
-            cls_per_task = int(len(tasks) / (task_idx+1))
-            cur_cls = tasks[-cls_per_task:]
+        cls_per_task = int(len(tasks) / (task_idx+1))
+        cur_cls = tasks[-cls_per_task:]
         new_targets, new_samples = [], []
         if training and (keep_file is not None) and os.path.exists(keep_file):
             logger.info(f'Using {keep_file}')
             with open(keep_file, 'r') as rfile:
                 for line in rfile:
                     indx = int(line.split('\n')[0])
-                    if tasks is None or targets[indx] in tasks:
-                        if buffer_lst:
-                            if targets[indx] not in cur_cls and indx not in buffer_lst:
-                                continue
+                    if targets[indx] in cur_cls:
+                        new_targets.append(targets[indx])
+                        new_samples.append(samples[indx])
+                    elif buffer_lst is not None and indx in buffer_lst:
                         new_targets.append(targets[indx])
                         new_samples.append(samples[indx])
         else:
@@ -1048,9 +1082,9 @@ class ClassStratifiedSampler(torch.utils.data.Sampler):
         self.unique_cpb = unique_classes
         self.batch_size = batch_size
         self.num_classes = len(set(data_source.targets))
+        self.classes = set(data_source.targets)
         self.epochs = epochs
         self.outer_epoch = 0
-
         if not self.unique_cpb:
             assert self.num_classes % self.cpb == 0
 
@@ -1095,7 +1129,7 @@ class ClassStratifiedSampler(torch.utils.data.Sampler):
         g = torch.Generator()
         g.manual_seed(seed)
         samplers = []
-        for t in range(self.num_classes):
+        for t in self.classes:
             t_indices = np.array(self.data_source.target_indices[t])
             if not self.unique_cpb:
                 i_size = len(t_indices) // self.world_size
@@ -1211,7 +1245,9 @@ class TransImageNet(ImageNet):
         init_transform=None,
         multicrop_transform=(0, None),
         seed=0,
-        tasks=None
+        task_idx=None,
+        tasks=None,
+        buffer_lst=None
     ):
         """
         TransImageNet
@@ -1233,7 +1269,9 @@ class TransImageNet(ImageNet):
                 dataset.samples,
                 dataset.class_to_idx,
                 seed,
-                tasks=tasks)
+                task_idx=task_idx,
+                tasks=tasks,
+                buffer_lst=buffer_lst)
             logger.debug(f'num-labeled {len(self.samples)}')
             mint = None
             self.target_indices = []
@@ -1241,6 +1279,8 @@ class TransImageNet(ImageNet):
                 indices = np.squeeze(np.argwhere(
                     self.targets == t)).tolist()
                 self.target_indices.append(indices)
+                if isinstance(indices, int):
+                    indices = [indices]
                 mint = len(indices) if mint is None else min(mint, len(indices))
                 logger.info(f'num-labeled target {t} {len(indices)}')
             logger.info(f'min. labeled indices {mint}')
@@ -1260,6 +1300,7 @@ class TransImageNet(ImageNet):
         if self.dataset.transform is not None:
             if self.supervised:
                 return *[self.dataset.transform(img) for _ in range(self.supervised_views)], target
+
             else:
                 img_1 = self.dataset.transform(img)
                 img_2 = self.dataset.transform(img)
@@ -1292,7 +1333,7 @@ class TransCIFAR10(torchvision.datasets.CIFAR10):
         tasks=None,
         task_idx=None,
         us=False,
-        buffer_lst=None
+        buffer_lst=None,
     ):
         data_path = None
         if copy_data:
@@ -1306,11 +1347,12 @@ class TransCIFAR10(torchvision.datasets.CIFAR10):
         logger.info(f'data-path {data_path}')
 
         super().__init__(data_path, train, transform, target_transform, True)
-
+        self.training = train
         self.supervised_views = supervised_views
         self.multicrop_transform = multicrop_transform
         self.supervised = supervised
         self.us = us
+        self.not_aug_transform = transforms.Compose([transforms.ToTensor()])
         if self.supervised:
             self.targets, self.data = init_transform(self.targets, self.data, tasks=tasks, task_idx=task_idx, buffer_lst=buffer_lst)
             logger.info(f'num-labeled {len(self.data)}')
@@ -1318,6 +1360,8 @@ class TransCIFAR10(torchvision.datasets.CIFAR10):
             self.target_indices = []
             for t in range(len(self.classes)):
                 indices = np.squeeze(np.argwhere(self.targets == t)).tolist()
+                if not isinstance(indices, list):
+                    indices = [indices]
                 self.target_indices.append(indices)
                 mint = len(indices) if mint is None else min(mint, len(indices))
                 logger.info(f'num-labeled target {t} {len(indices)}')
@@ -1332,9 +1376,12 @@ class TransCIFAR10(torchvision.datasets.CIFAR10):
 
         if self.transform is not None:
 
-            if self.supervised and not self.us:
+            if self.supervised and self.training:
                 return *[self.transform(img) for _ in range(self.supervised_views)], target
+                # return self.not_aug_transform(img), target  # Returning un-augmentated images
 
+            elif self.supervised and not self.training:
+                return *[self.transform(img) for _ in range(self.supervised_views)], target
             else:
                 img_1 = self.transform(img)
                 img_2 = self.transform(img)
@@ -1366,7 +1413,7 @@ class TransCIFAR100(torchvision.datasets.CIFAR100):
         supervised_views=1,
         tasks=None,
         task_idx=None,
-        buffer_lst=None
+        buffer_lst=None,
     ):
         data_path = None
         if copy_data:
@@ -1378,39 +1425,13 @@ class TransCIFAR100(torchvision.datasets.CIFAR100):
         if (not copy_data) or (data_path is None):
             data_path = os.path.join(root, image_folder)
         logger.info(f'data-path {data_path}')
-
+        self.not_aug_transform = transforms.Compose([transforms.ToTensor()])
         super().__init__(data_path, train, transform, target_transform, True)
 
-        # # Randomize the classes
-        order1 = [88, 96, 94,  8, 78, 85, 62, 21, 28, 63, 92, 42, 52, 91,  1, 22, 47, 71, 77, 74,
-                  84, 87, 54, 17, 95, 43,  3, 16, 10, 73, 35, 50, 98,  7, 27, 13, 75, 64, 29, 36,
-                  68, 53, 41, 49, 97, 59, 81, 90, 46, 44, 33, 32,  9, 31, 38, 99, 69, 65, 26,  4,
-                  12, 80, 30,  5, 76,  2, 23, 39, 66, 79, 56, 18, 61, 86, 51, 70, 15, 45, 20,  0,
-                  93, 14, 25, 37, 89, 24, 83, 19, 58, 67, 40, 55, 60, 48, 72, 82, 11, 57,  6, 34]
-        order2 = [26,  9, 93, 41, 83, 74, 84, 13, 49, 22, 35, 97, 99, 62, 39, 20, 69,  7, 10, 11,
-                  21, 43,  5, 60,  3, 96, 65,  4,  0, 67, 55, 58, 70, 95, 33, 45, 91, 77, 71, 12, 
-                  89, 15, 38,  2, 24, 61, 87, 28, 19, 30, 66, 46, 94, 92, 17, 72, 16,  6, 47, 25, 
-                  86, 76, 64, 54, 80, 31, 32, 42, 34, 98, 48, 88, 85, 75, 78, 18, 23,  8, 37, 73,  
-                  82, 57, 63, 40, 79, 27, 44, 90, 29, 68, 50, 51, 36, 52, 59, 81, 14,  1, 53, 56]
-        order3 = [87, 63, 62, 37,  7, 95, 65,  9, 36, 93, 12, 14, 79, 86, 46, 83, 22, 30, 57, 47,
-                  56, 48, 15, 82, 89, 74, 92, 64, 71,  8, 53, 18, 41, 33, 97, 78, 42, 35, 76, 39,
-                   5, 32,  2, 40,  0, 69, 98, 29, 24, 75, 49, 10, 13, 16, 85, 11, 70, 88, 19, 51,
-                  73,  6, 81, 60, 59, 34, 91, 43, 61, 94, 68, 80, 20, 99, 84, 52, 17, 44, 28, 90,
-                   4,  1, 66, 38, 72, 96, 67, 55, 50, 45,  3, 77, 31, 25, 58, 27, 23, 21, 54, 26]
-        order_cifar = [4, 30, 55, 72, 95, 1, 32, 67, 73, 91, 54, 62, 70, 82, 92, 
-                9, 10, 16, 28, 61, 0, 51, 53, 57, 83, 22, 39, 40, 86, 87,
-                5, 20, 25, 84, 94, 6, 7, 14, 18, 24, 3, 42, 43, 88, 97, 12, 
-                17, 37, 68, 76, 23, 33, 49, 60, 71, 15, 19, 21, 31, 38, 34, 63, 
-                64, 66, 75, 26, 45, 77, 79, 99, 2, 11, 35, 46, 98, 27, 29, 44,
-                78, 93, 36, 50, 65, 74, 80, 47, 52, 56, 59, 96, 8, 13, 48, 58, 90, 41, 69, 81, 85, 89]
-        
-        # Buffer construction
-
-        shuffled = order1
-        # self.targets = [shuffled[i] for i in self.targets]
         self.supervised_views = supervised_views
         self.multicrop_transform = multicrop_transform
         self.supervised = supervised
+        self.training = train
         if self.supervised:
             self.targets, self.data = init_transform(self.targets, self.data, tasks=tasks, task_idx=task_idx, buffer_lst=buffer_lst)
             logger.info(f'num-labeled {len(self.data)}')
@@ -1418,6 +1439,8 @@ class TransCIFAR100(torchvision.datasets.CIFAR100):
             self.target_indices = []
             for t in range(len(self.classes)):
                 indices = np.squeeze(np.argwhere(self.targets == t)).tolist()
+                if isinstance(indices, int):
+                    indices = [indices]
                 self.target_indices.append(indices)
                 mint = len(indices) if mint is None else min(mint, len(indices))
                 logger.info(f'num-labeled target {t} {len(indices)}')
@@ -1432,7 +1455,11 @@ class TransCIFAR100(torchvision.datasets.CIFAR100):
 
         if self.transform is not None:
 
-            if self.supervised:
+            if self.supervised and self.training:
+                return *[self.transform(img) for _ in range(self.supervised_views)], target
+                # return self.not_aug_transform(img), target # Returning un-augmentated images
+
+            elif self.supervised and not self.training:
                 return *[self.transform(img) for _ in range(self.supervised_views)], target
 
             else:
