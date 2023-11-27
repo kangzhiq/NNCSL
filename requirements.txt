@@ -1,0 +1,10 @@
+numpy==1.21.2
+Pillow==8.4.0
+Pillow==10.1.0
+pypesq==1.2.4
+PyYAML==6.0
+PyYAML==6.0.1
+scikit_learn==1.0.1
+torch==1.7.1
+torchvision==0.8.0a0
+tqdm==4.62.3
