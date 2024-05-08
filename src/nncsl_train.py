@@ -82,7 +82,7 @@ random.seed(_GLOBAL_SEED)
 # torch.set_deterministic(True)
 
 # logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-logging.basicConfig(filename='output/cifar10_5%_buf500.log', level=logging.INFO)
+logging.basicConfig(filename='output/example.log', level=logging.INFO)
 logger = logging.getLogger()
 
 
@@ -808,6 +808,7 @@ def main(args):
                    
         # Save a copy of the curernt model for distillation
         pre_encoder = copy.deepcopy(encoder.eval())
+
 
         # Update the buffer
         buffer_lst = make_buffer_lst(buffer_lst, buffer_size, subset_path, subset_path_cls, tasks, task_idx)

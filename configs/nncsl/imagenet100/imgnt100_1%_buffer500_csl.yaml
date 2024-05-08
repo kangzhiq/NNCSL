@@ -36,7 +36,7 @@ meta:
   read_checkpoint: null
   use_fp16: false
   use_pred_head: false
-  name: nncsl-imgnt100-r18-1%-20T-current-mask-sup5-lr1.2-epoch100-no_detach-clf.12-online.005-wd5-buffer500
+  name: imgnt100-r18-1%-buffer500-csl
   w_paws: 1
   w_me_max: 1
   w_online: 0.005

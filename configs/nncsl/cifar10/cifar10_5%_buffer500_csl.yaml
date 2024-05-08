@@ -36,7 +36,7 @@ meta:
   read_checkpoint: null
   use_fp16: true
   use_pred_head: false
-  name: nncsl-c10-r18-5%-5T-current-mask-sup5-lr.4-epoch250-no_detach-clf.12-online.005-wd-5-buffer500
+  name: c10-r18-5%-buffer500-csl
   w_paws: 1
   w_me_max: 1
   w_online: 0.005
