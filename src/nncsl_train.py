@@ -808,7 +808,6 @@ def main(args):
                    
         # Save a copy of the curernt model for distillation
         pre_encoder = copy.deepcopy(encoder.eval())
-        encoder.train()
 
         # Update the buffer
         buffer_lst = make_buffer_lst(buffer_lst, buffer_size, subset_path, subset_path_cls, tasks, task_idx)
