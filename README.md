@@ -114,6 +114,9 @@ Below is an example for generate index files for CIFAR-10 with 50 percents of la
 2. Source the index files in the corresponding config files
 Change `subset_path` and `subset_path_cls` to the corresponding path. Please note that these two parameters should be consistent.
 
+### Reproduction
+The training log files are shared in the /log directory for debugging reproduction issues. Please don't hesitate to contact us if you find any further difficulties.  
+
 ### Work in progress
 We will keep updating our repository to make it easier to use and to share our recent progress on this project.
 1. Using standard reservoir replay buffer
